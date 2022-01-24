@@ -1,8 +1,11 @@
 package br.com.api.spring.controller;
 
+import javax.transaction.Transactional;
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties.Pageable;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -12,11 +15,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.com.api.spring.dto.UsuarioDTO;
-import br.com.api.spring.model.UsuarioModel;
+import br.com.api.spring.dto.UsuarioDto;
 import br.com.api.spring.service.UsuarioService;
 
 @RestController
@@ -27,51 +28,54 @@ public class UsuarioController {
 	private UsuarioService usuarioService;
 
 	@GetMapping
-	public Page<UsuarioDTO> searchAll(Pageable pageable) {
+	public ResponseEntity<Page> searchAll(Pageable pageable) {
 		try {
 			return usuarioService.searchAll(pageable);
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (Exception ex) {
+			ex.printStackTrace();
 		}
 		return searchAll(pageable);
 	}
 
-	@GetMapping("{id}")
-	public ResponseEntity<UsuarioDTO> searchById(@PathVariable Long id) {
+	@GetMapping("/{cpf}")
+	public ResponseEntity<ResponseEntity<UsuarioDto>> searchByCpf(@PathVariable String cpf) {
 		try {
-			return ResponseEntity.ok(usuarioService.searchById(id));
+			return ResponseEntity.ok(usuarioService.searchByCpf(cpf));
 		} catch (Exception ex) {
 			return ResponseEntity.notFound().build();
 		}
 	}
 
 	@PostMapping
-	@ResponseStatus(HttpStatus.CREATED)
-	public ResponseEntity<UsuarioDTO> cadastrar(@RequestBody UsuarioDTO usuario) {
+	public ResponseEntity<UsuarioDto> save(@Valid @RequestBody UsuarioDto usuarioDto) {
 		try {
-			UsuarioDTO usuarioSave = usuarioService.save(usuario);
-			return ResponseEntity.status(HttpStatus.CREATED).body(usuarioSave);
-		} catch (Exception e) {
+			UsuarioDto usuario = usuarioService.save(usuarioDto);
+			return ResponseEntity.status(HttpStatus.CREATED).body(usuario);
+		} catch (Exception ex) {
+			ex.getMessage();
+			return ResponseEntity.noContent().build();
+		}
+
+	}
+
+	@PutMapping("/{cpf}")
+	@Transactional
+	public ResponseEntity<UsuarioDto> update(@Valid @PathVariable String cpf, @RequestBody UsuarioDto usuarioDto) {
+		try {
+			UsuarioDto usuarioDtoUpdate = usuarioService.update(cpf, usuarioDto);
+			return ResponseEntity.ok(usuarioDtoUpdate);
+		} catch (Exception ex) {
 			return ResponseEntity.notFound().build();
 		}
 	}
 
-	@PutMapping("{id}")
-	public ResponseEntity<UsuarioDTO> update(@PathVariable Long id, @RequestBody UsuarioDTO usuario) {
+	@DeleteMapping("/{cpf}")
+	@Transactional
+	public ResponseEntity<UsuarioDto> delete(@PathVariable String cpf) {
 		try {
-			UsuarioDTO usuarioUpdate = usuarioService.update(id, usuario);
-			return ResponseEntity.ok(usuarioUpdate);
-		} catch (Exception e) {
-			return ResponseEntity.notFound().build();
-		}
-	}
-
-	@DeleteMapping("{id}")
-	public ResponseEntity<UsuarioModel> deletar(@PathVariable Long id, UsuarioModel model) {
-		try {
-			usuarioService.deletar(id, model);
-			return ResponseEntity.ok().build();
-		} catch (Exception e) {
+			usuarioService.deletar(cpf);
+			return ResponseEntity.noContent().build();
+		} catch (Exception ex) {
 			return ResponseEntity.notFound().build();
 		}
 	}

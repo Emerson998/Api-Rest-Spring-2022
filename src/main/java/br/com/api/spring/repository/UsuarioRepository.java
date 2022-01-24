@@ -1,15 +1,19 @@
 package br.com.api.spring.repository;
 
-import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties.Pageable;
-import org.springframework.data.domain.Page;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import br.com.api.spring.model.UsuarioModel;
+import br.com.api.spring.entity.UsuarioEntity;
 
-public interface UsuarioRepository extends JpaRepository<UsuarioModel, Long> {
+public interface UsuarioRepository extends JpaRepository<UsuarioEntity, Long> {
 
-	Page<UsuarioModel> findAll(Pageable pageable);
+	boolean existsByCpf(String cpf);
 
-	UsuarioModel findById();
+	Optional<UsuarioEntity> findByCpf(String cpf);
+
+	void deleteByCpf(String cpf);
+
+
 
 }
